@@ -1,0 +1,986 @@
+openapi: 3.0.0
+info:
+  title: nng api
+  description: API для проектов nng
+  version: 1.0.0
+servers:
+  - url: https://twlight.likhner.com/api
+    description: Основной сервер
+tags:
+  - name: users
+    description: Взаимодействие с пользователями
+  - name: groups
+    description: Взаимодействие с группами
+  - name: settings
+    description: Настройки скриптов
+  - name: stats
+    description: Статистика
+  - name: requests
+    description: Запросы на рассмотрение
+  - name: watchdog
+    description: Логи вачдога
+  - name: public
+    description: Публичная часть API для сайта (без авторизации)
+paths:
+  /users:{userID}:
+    get:
+      tags:
+        - users
+      operationId: getUser
+      summary: Получить информацию о пользователе (только админка)
+      parameters:
+        - name: userID
+          in: path
+          description: 'Айди пользователя'
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        '200':
+          description: Операция прошла успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+    post:
+      tags:
+        - users
+      operationId: updateUser
+      summary: Обновить информацию о пользователе (только админка)
+      parameters:
+        - name: userID
+          in: path
+          description: 'Айди пользователя'
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      requestBody:
+        description: Новая карточка пользователя
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdated'
+      responses:
+        '200':
+          description: Операция прошла успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '405':
+          description: Неверный ввод
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /users:
+    put:
+      tags:
+        - users
+      operationId: createUser
+      summary: Создать информацию о пользователе (первый запуск аппа)
+      requestBody:
+        description: Полный профиль пользователя который будет в базе (старые не могут быть заменены)
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: Операция прошла успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '405':
+          description: Неверный ввод
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '409':
+          description: Такая запись уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /groups:
+    get:
+      tags:
+        - groups
+        - public
+      operationId: getGroups
+      summary: Получить информацию о всех группах (без авторизации)
+      responses:
+        '200':
+          description: Информация о группах
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Groups'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+    put:
+      tags:
+        - groups
+      operationId: createGroup
+      summary: Добавить новую группу
+      requestBody:
+        description: Информация о новой группе
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupInfo'
+      responses:
+        '201':
+          description: Операция прошла успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '405':
+          description: Неверный ввод
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '409':
+          description: Такая запись уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /settings:
+    get:
+      tags:
+        - settings
+      operationId: getSettings
+      summary: Получить текущие настройки скриптов
+      responses:
+        '200':
+          description: Текущие настройки скриптов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+    post:
+      tags:
+        - settings
+      operationId: updateSettings
+      summary: Обновить некоторые настройки
+      requestBody:
+        description: Новые настройки
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Settings'
+      responses:
+        '200':
+          description: Операция прошла успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '405':
+          description: Неверный ввод
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /stats/groups:{groupID}:
+    get:
+      tags:
+        - stats
+      operationId: getStatsGroup
+      summary: Получить статистику по конкретной группе
+      parameters:
+        - name: groupID
+          in: path
+          description: 'ID группы'
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+      responses:
+        '200':
+          description: Статистика по конкретной группе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupStats'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '404':
+          description: Группа не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /requests:
+    get:
+      tags:
+        - requests
+      operationId: getRequests
+      summary: Получить список всех запросов
+      responses:
+        '200':
+          description: Список всех запросов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Request'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+    put:
+      tags:
+        - requests
+      operationId: createRequest
+      summary: Отправить заявку о разблокировке
+      requestBody:
+        description: Информация о новой группе
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestCreate'
+      responses:
+        '201':
+          description: Операция прошла успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '405':
+          description: Неверный ввод
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '409':
+          description: Такая запись уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /requests:{requestID}:
+    post:
+      tags:
+        - requests
+      operationId: updateRequest
+      summary: Изменить статус запроса
+      parameters:
+        - name: requestID
+          in: path
+          description: ULID запроса
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Обновленный статус запроса
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestUpdate'
+      responses:
+        '200':
+          description: Операция прошла успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '404':
+          description: Запрос не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '405':
+          description: Неверный ввод
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /watchdog:
+    get:
+      tags:
+        - watchdog
+      operationId: getWatchdog
+      summary: Получить список логов вачдога
+      responses:
+        '200':
+          description: Список логов вачдога
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Watchdog'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /watchdog:{watchdogID}:
+    post:
+      tags:
+        - watchdog
+      operationId: updateWatchdog
+      summary: Дополнить лог вачдога
+      parameters:
+        - name: watchdogID
+          in: path
+          description: ULID лога
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Новые настройки
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WatchdogUpdate'
+      responses:
+        '200':
+          description: Операция прошла успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '401':
+          description: Неавторизованный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '405':
+          description: Неверный ввод
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /bnnd:
+    get:
+      tags:
+        - public
+      operationId: getBnnd
+      summary: Получить всех заблокированных
+      responses:
+        '200':
+          description: Список заблокированных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bnnd'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+  /thx:
+    get:
+      tags:
+        - public
+      operationId: getThx
+      summary: Получить всех приоритетных пользователей
+      responses:
+        '200':
+          description: Список приоритетных пользователей
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thx'
+        '500':
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Info'
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Егор Αртемьев
+          description: Имя и фамилия на момент появления у нас
+        user_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 527870353
+          description: Айди страницы
+        admin:
+          type: boolean
+          example: true
+          description: Является ли пользователь администратором
+        thx:
+          type: boolean
+          example: false
+          description: Находится ли пользователь в списке приоритетных
+        app:
+          type: boolean
+          example: true
+          description: Пользовался ли человек ботом или приложением
+        groups:
+          type: array
+          description: Список групп, в которых пользователь редактор
+          items:
+            type: integer
+            example: 210485677
+            description: Айди сообщества
+        bnnd:
+          type: boolean
+          example: false
+          description: Заблокирован ли пользователь на данный момент
+        bnnd_info:
+          type: object
+          description: Информация о нарушении правил (может быть даже если человек разблокирован)
+          properties:
+            group_id:
+              type: integer
+              format: int64
+              minimum: 0
+              example: 167115651
+              description: Группа, где были нарушены правила
+            priority:
+              type: integer
+              format: int32
+              enum:
+                - 1
+                - 2
+                - 3
+                - 4
+              example: 4
+              description: Приоритет заблокированного
+            complaint:
+              type: integer
+              format: int64
+              minimum: 0
+              example: 221241387
+              description: Айди человека, пожаловавшегося на пользователя (только в случае, если приоритет двойка)
+            date:
+              type: string
+              format: date-time
+              example: 2023-02-15T00:41:03.775Z
+              description: Дата нарушения правил
+        upd:
+          type: string
+          format: date-time
+          example: 2023-02-15T00:41:03.775Z
+          description: Дата последнего обновления
+    Groups:
+      type: array
+      items:
+        $ref: '#/components/schemas/GroupInfo'
+    GroupInfo:
+      type: object
+      properties:
+        group_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 210485677
+          description: Айди группы (без минуса)
+        screen_name:
+          type: string
+          example: nngzz
+          description: Короткая ссылка группы
+    Bnnd:
+      type: array
+      items:
+        $ref: '#/components/schemas/BnndInfo'
+    BnndInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Данил Майгуров
+          description: Имя и фамилия на момент блокировки
+        user_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 642687719
+          description: Айди страницы
+        bnnd:
+          type: boolean
+          example: true
+          description: Заблокирован ли пользователь на данный момент
+        bnnd_info:
+          type: object
+          description: Информация о нарушении правил (может быть даже если человек разблокирован)
+          properties:
+            group_id:
+              type: integer
+              format: int64
+              minimum: 0
+              example: 204871177
+              description: Группа, где были нарушены правила
+            priority:
+              type: integer
+              format: int32
+              enum:
+                - 1
+                - 2
+                - 3
+                - 4
+              example: 3
+              description: Приоритет заблокированного
+            complaint:
+              type: integer
+              format: int64
+              minimum: 0
+              example: 221241387
+              description: Айди человека, пожаловавшегося на пользователя (только в случае, если приоритет двойка)
+            date:
+              type: string
+              format: date-time
+              example: 2023-02-15T00:41:03.775Z
+              description: Дата нарушения правил
+    GroupStats:
+      type: object
+      properties:
+        group_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 210485677
+          description: Айди группы
+        members:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 1536
+          description: Количество участников в группе
+        managers:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 100
+          example: 87
+          description: Количество администраторов в группе
+    Thx:
+      type: array
+      items:
+        $ref: '#/components/schemas/ThxInfo'
+    ThxInfo:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Егор Αртемьев
+          description: Имя и фамилия на момент появления у нас
+        user_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 527870353
+          description: Айди страницы
+    Request:
+      type: object
+      properties:
+        ulid:
+          type: string
+          example: 01GS8SW07MW3E3DCP4BWEMKWQN
+          description: ULID запроса
+        user_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 221241387
+          description: Айди человека, подавшего запрос на разблокировку
+        review:
+          type: object
+          description: Информация о рассмотрение запроса
+          properties:
+            reviewed:
+              type: boolean
+              example: false
+              description: Рассмотрен ли запрос
+            decision:
+              type: boolean
+              example: false
+              description: Принято ли решение (accepted/true, rejected/false)
+            review_date:
+              type: string
+              format: date-time
+              example: 2023-02-15T00:41:03.775Z
+              description: Дата принятия решения
+        date:
+          type: string
+          format: date-time
+          example: 2023-02-15T00:41:03.775Z
+          description: Дата подачи запроса на разблокировку
+    Settings:
+      type: object
+      properties:
+        ban_comment:
+          type: string
+          example: 'Блокировка после решения Администрации | По вопросам: https://vk.me/mralonas'
+          description: Комменатрий при блокировке пользователя
+        max_editors:
+          type: integer
+          format: int32
+          minimum: 0
+          example: 32
+          description: Максимальное количество редакторов на одного человека
+        log_user:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 527870353
+          description: Айди администратора (!), которому будут отправляться логи
+    Watchdog:
+      type: object
+      properties:
+        ulid:
+          type: string
+          example: 01GS8SW07MW3E3DCP4BWEMKWQN
+          description: ULID лога
+        user_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 221241387
+          description: Айди человека, подавшего запрос на разблокировку
+        name:
+          type: string
+          example: Данил Майгуров
+          description: Имя и фамилия на момент блокировки
+        group_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 204871177
+          description: Группа, где были нарушены правила
+        priority:
+          type: integer
+          format: int32
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+          example: 3
+          description: Приоритет заблокированного
+        date:
+          type: string
+          format: date-time
+          example: 2023-02-15T00:41:03.775Z
+          description: Дата нарушения правил
+        reviewed:
+          type: boolean
+          example: false
+          description: Рассмотрен ли запрос
+    WatchdogUpdate:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 221241387
+          description: Айди человека
+        name:
+          type: string
+          example: Данил Майгуров
+          description: Имя и фамилия на момент блокировки
+        reviewed:
+          type: boolean
+          example: true
+          description: Рассмотрен ли запрос
+    Info:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          enum:
+            - 10
+            - 20
+            - 30
+            - 40
+            - 201
+            - 401
+            - 404
+            - 405
+            - 409
+            - 418
+          example: 404
+          description: Код ответа или ошибки
+        message:
+          type: string
+          enum:
+            - User successfully updated
+            - Settings successfully updated
+            - Request status successfully updated
+            - Watchdog log successfully updated
+            - Created
+            - Unauthorized
+            - Not found
+            - Invalid input
+            - Conflict
+            - I'm a teapot
+          example: User not found
+          description: Описание ответа или ошибки
+        tea:
+          type: string
+          example: null
+          description: Описание ошибки если код 418
+    RequestCreate:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 221241387
+          description: Айди человека, подавшего запрос на разблокировку
+    RequestUpdate:
+      type: object
+      properties:
+        reviewed:
+          type: boolean
+          example: true
+          description: Рассмотрен ли запрос
+        decision:
+          type: boolean
+          example: false
+          description: Принято ли решение (accepted/true, rejected/false)
+    UserCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Данил Майгуров
+          description: Имя и фамилия на момент блокировки
+        user_id:
+          type: integer
+          format: int64
+          minimum: 0
+          example: 221241387
+          description: Айди человека, подавшего запрос на разблокировку
+    UserUpdated:
+      type: object
+      properties:
+        thx:
+          type: boolean
+          example: false
+          description: Находится ли пользователь в списке приоритетных
+        bnnd:
+          type: boolean
+          example: true
+          description: Заблокирован ли пользователь на данный момент
+  securitySchemes:
+    vk_access_token_settings:
+      type: apiKey
+      name: vk_access_token_settings
+      in: query
+    vk_app_id:
+      type: apiKey
+      name: vk_app_id
+      in: query
+    vk_are_notifications_enabled:
+      type: apiKey
+      name: vk_are_notifications_enabled
+      in: query
+    vk_is_app_user:
+      type: apiKey
+      name: vk_is_app_user
+      in: query
+    vk_is_favorite:
+      type: apiKey
+      name: vk_is_favorite
+      in: query
+    vk_language:
+      type: apiKey
+      name: vk_language
+      in: query
+    vk_platform:
+      type: apiKey
+      name: vk_platform
+      in: query
+    vk_ref:
+      type: apiKey
+      name: vk_ref
+      in: query
+    vk_ts:
+      type: apiKey
+      name: vk_ts
+      in: query
+    vk_user_id:
+      type: apiKey
+      name: vk_user_id
+      in: query
+    sign:
+      type: apiKey
+      name: sign
+      in: query
+security:
+  - vk_access_token_settings: [ ]
+    vk_app_id: [ ]
+    vk_are_notifications_enabled: [ ]
+    vk_is_app_user: [ ]
+    vk_is_favorite: [ ]
+    vk_language: [ ]
+    vk_platform: [ ]
+    vk_ref: [ ]
+    vk_ts: [ ]
+    vk_user_id: [ ]
+    sign: [ ]
